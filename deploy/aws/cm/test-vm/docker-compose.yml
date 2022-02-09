@@ -1,0 +1,8 @@
+services:
+  app:
+    image: test-vm:latest
+    container_name: test-vm-container
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./Dockerfile

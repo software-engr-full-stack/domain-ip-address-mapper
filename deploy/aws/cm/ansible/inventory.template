@@ -1,0 +1,5 @@
+[default]
+$makefile_remote_ip
+
+[test]
+localhost

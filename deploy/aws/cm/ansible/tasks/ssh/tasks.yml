@@ -1,0 +1,32 @@
+---
+- name: '{{ title }}: upload configuration'
+  become: yes
+  template:
+    src: ./sshd_config.j2
+    dest: /etc/ssh/sshd_config
+  notify: restart-ssh
+
+- name: '{{ title }}: /etc/issue.net'
+  become: yes
+  copy:
+    dest: /etc/issue.net
+    content: ''
+
+- name: '{{ title }}: disable MOTD => ...dynamic'
+  become: yes
+  replace:
+    path: /etc/pam.d/sshd
+    regexp: '^\s*session\s+optional\s+pam_motd\.so\s+motd=\/run\/motd.dynamic\s*$'
+    replace: |
+
+      # ... START
+      # session    optional     pam_motd.so  motd=/run/motd.dynamic
+
+- name: '{{ title }}: disable MOTD => ...noupdate'
+  become: yes
+  replace:
+    path: /etc/pam.d/sshd
+    regexp: '^\s*session\s+optional\s+pam_motd.so\s+noupdate\s*$'
+    replace: |
+      # session    optional     pam_motd.so noupdate
+      # ... END

@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - "${DB_HOST_PORT?ERROR => env var not set}:5432"
+    environment:
+      POSTGRES_PASSWORD: "${DB_PASSWORD?ERROR => env var not set}"
+    volumes:
+      - "${DOCKER_DATA_DIR?ERROR => env var not set}/var/lib/postgresql/data:/var/lib/postgresql/data"
+    healthcheck:
+      test: pg_isready -U postgres
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080

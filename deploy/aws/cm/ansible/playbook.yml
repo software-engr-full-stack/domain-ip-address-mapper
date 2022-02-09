@@ -1,0 +1,27 @@
+---
+- hosts: default
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.9
+    ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+  #   ansible_python_interpreter: auto_legacy_silent
+
+  vars_files:
+    - '../../../../priv/ansible-vault'
+
+  remote_user: remote
+
+  tasks:
+    - import_tasks: ./tasks/ssh/tasks.yml
+      vars:
+        title: 'ssh'
+        TODO_TEMPLATE_ssh_port: 22
+        TODO_TEMPLATE_remote_user: 'TODO-USER'
+        TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
+
+  handlers:
+  - name: restart-ssh
+    become: yes
+    service:
+      name: ssh
+      state: restarted

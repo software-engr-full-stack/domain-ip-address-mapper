@@ -1,0 +1,27 @@
+extends:
+  - 'airbnb'
+  - 'airbnb/hooks'
+
+env:
+  browser: true
+
+rules:
+  react/jsx-filename-extension:
+    - off
+  comma-dangle:
+    - off
+  react/jsx-one-expression-per-line:
+    - off
+
+  # react/destructuring-assignment:
+  #   - off
+
+  # react/function-component-definition:
+  #   - 2
+  #   - namedComponents: arrow-function
+  #     unnamedComponents: arrow-function
+
+  # react/function-component-definition:
+  #   - off
+  #   # namedComponents:
+  #   #   - arrow-function
