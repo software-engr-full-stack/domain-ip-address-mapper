@@ -1,0 +1,33 @@
+- name: '{{ sub_subgroup_title }}: set facts'
+  set_fact:
+    backend_port: 8000
+    server_config_dest: '/etc/nginx/sites-available/{{ main_domain || "domain-ip-address-mapper.no-domain" }}'
+    template_file: "{{ './app.nginx.no-cert.j2' if no_cert_files else './app.nginx.with-cert.j2' }}"
+
+- name: '{{ sub_subgroup_title }}: install packages'
+  become: yes
+  apt:
+    pkg:
+      - nginx
+    install_recommends: no
+
+- name: '{{ sub_subgroup_title }}: create server config file'
+  become: yes
+  vars:
+    server_name: "{{ '# ... no domains' if no_domain else ['server_name', ' ', ' '.join(domains), ';'] | join('') }}"
+  ansible.builtin.template:
+    src: '{{ template_file }}'
+    dest: '{{ server_config_dest }}'
+
+- name: '{{ sub_subgroup_title }}: create symlink to sites-enabled dir'
+  become: yes
+  ansible.builtin.file:
+    src: '{{ server_config_dest }}'
+    dest: '/etc/nginx/sites-enabled/default'
+    state: link
+
+- name: '{{ sub_subgroup_title }}: unset facts'
+  set_fact:
+    backend_port:
+    server_config_dest:
+    template_file:

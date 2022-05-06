@@ -1,0 +1,111 @@
+- name: '{{ title }}, DNS: set facts'
+  set_fact:
+    group_title: '{{ title }}, database caching'
+    rconv: '/etc/resolv.conf'
+
+- name: '{{ group_title }}: install packages'
+  become: yes
+  apt:
+    pkg:
+      - dnsmasq
+    install_recommends: no
+
+- name: '{{ group_title }}: listen to dnsmasq'
+  become: yes
+  replace:
+    path: '/etc/dnsmasq.conf'
+    regexp: '#listen-address='
+    replace: |
+      # ...
+      listen-address=127.0.0.1
+
+- name: '{{ group_title }}: update DHCP client config'
+  become: yes
+  replace:
+    path: '/etc/dhcp/dhclient.conf'
+    regexp: '#prepend domain-name-servers 127.0.0.1;'
+    replace: |
+      # ...
+      prepend domain-name-servers 127.0.0.1;
+
+- name: '{{ group_title }}: remove {{ rconv }}'
+  become: yes
+  ansible.builtin.file:
+    path: '{{ rconv }}'
+    state: absent
+
+- name: '{{ group_title }}: install new {{ rconv }}'
+  become: yes
+  ansible.builtin.copy:
+    dest: '{{ rconv }}'
+    content: |
+      # ... whole file
+      # This file is managed by man:systemd-resolved(8). Do not edit.
+      #
+      # This is a dynamic resolv.conf file for connecting local clients to the
+      # internal DNS stub resolver of systemd-resolved. This file lists all
+      # configured search domains.
+      #
+      # Run "resolvectl status" to see details about the uplink DNS servers
+      # currently in use.
+      #
+      # Third party programs must not access this file directly, but only through the
+      # symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a different way,
+      # replace this symlink by a static file or a different symlink.
+      #
+      # See man:systemd-resolved.service(8) for details about the supported modes of
+      # operation for /etc/resolv.conf.
+
+      nameserver 127.0.0.1
+      nameserver {{ dns_servers[0] }}
+      nameserver 169.254.169.253
+      # ... original
+      # nameserver 127.0.0.53
+      options edns0 trust-ad
+      search us-west-1.compute.internal
+
+- name: '{{ group_title }}: daemon reload'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - daemon-reload
+  # when: TODO => service file is changed
+
+- name: '{{ group_title }}: stop systemd DNS resolver'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - stop
+      - systemd-resolved.service
+
+- name: '{{ group_title }}: disable systemd DNS resolver'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - disable
+      - systemd-resolved.service
+
+- name: '{{ group_title }}: stop DNS caching'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - stop
+      - dnsmasq.service
+
+# TODO: also enable?
+- name: '{{ group_title }}: start DNS caching'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - start
+      - dnsmasq.service
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:
+    rconv:

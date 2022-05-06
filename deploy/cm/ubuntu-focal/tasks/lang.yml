@@ -1,0 +1,96 @@
+---
+- name: '{{ title }}, programming languages: set facts'
+  set_fact:
+    group_title: '{{ title }}, programming languages'
+    go_archive_file: '/tmp/{{ go_basename }}'
+    nodejs_archive_file: '/tmp/{{ nodejs_basename }}'
+
+- name: '{{ group_title }}, go: download archive'
+  get_url:
+    url: 'https://go.dev/dl/{{ go_basename }}'
+    dest: '{{ go_archive_file }}'
+
+# # TODO: probably not a good idea to remove this because
+# #   we'll be reinstalling Go packages all the time if we do.
+# # Removing go dir is what https://go.dev/doc/install recommends.
+# # Not sure if it's necessary in this context.
+# # This will run the unarchive task again if this dir is deleted.
+# # No removal: 14 seconds
+# # With removal: 16 seconds
+# # Just keep it. 2 sec diff is negligible.
+# - name: '{{ group_title }}: remove target dir'
+#   become: yes
+#   ansible.builtin.file:
+#     path: '{{ go_target_dir }}'
+#     state: absent
+
+- name: '{{ group_title }}, go: extract'
+  become: yes
+  ansible.builtin.unarchive:
+    src: '{{ go_archive_file }}'
+    dest: '{{ go_target_dir | dirname }}'
+    remote_src: yes
+
+- name: "{{ group_title }}, go: change owner of install to '{{ deploy_user }}'"
+  become: yes
+  ansible.builtin.file:
+    path: '{{ go_target_dir }}'
+    state: directory
+    recurse: yes
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+
+- name: '{{ group_title }}, nodejs: download archive'
+  get_url:
+    url: 'https://nodejs.org/dist/v16.14.0/{{ nodejs_basename }}'
+    dest: '{{ nodejs_archive_file }}'
+
+# OK to remove probably because NodeJS modules are installed in app directory.
+- name: '{{ group_title }}, nodejs: remove target dir'
+  become: yes
+  ansible.builtin.file:
+    path: '{{ nodejs_target_dir }}'
+    state: absent
+
+- name: '{{ group_title }}, nodejs: extract'
+  become: yes
+  ansible.builtin.unarchive:
+    src: '{{ nodejs_archive_file }}'
+    dest: '{{ nodejs_extract_dest | dirname }}'
+    remote_src: yes
+
+- name: '{{ group_title }}, nodejs: move'
+  become: yes
+  ansible.builtin.command: /usr/bin/mv '{{ nodejs_extract_dest }}' '{{ nodejs_target_dir }}'
+
+# https://stackoverflow.com/questions/26320901/cannot-install-nodejs-usr-bin-env-node-no-such-file-or-directory
+- name: '{{ group_title }}, nodejs: create /usr/bin/node symlink, see doc why'
+  become: yes
+  ansible.builtin.file:
+    src: '{{ nodejs_target_dir }}/bin/node'
+    dest: '/usr/bin/node'
+    state: link
+
+- name: "{{ group_title }}, nodejs: change owner of install to '{{ deploy_user }}'"
+  become: yes
+  ansible.builtin.file:
+    path: '{{ nodejs_target_dir }}'
+    state: directory
+    recurse: yes
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+
+- name: '{{ group_title }}: set path for binaries'
+  become: yes
+  lineinfile:
+    dest:  /etc/profile
+    line: '{{ item }}'
+  loop:
+    - '# ...'
+    - 'export PATH=$PATH:{{ go_target_dir }}/bin:{{ nodejs_target_dir }}/bin'
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:
+    go_archive_file:
+    nodejs_archive_file:

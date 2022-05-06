@@ -1,0 +1,90 @@
+---
+- hosts: default
+
+  remote_user: '{{ rmt_user }}'
+
+  tasks:
+    - name: 'Digital Ocean playbook: set facts'
+      set_fact:
+        playbook_title: 'Digital Ocean playbook'
+
+    - import_tasks: '{{ cm_dir }}/tasks/ssh/tasks.yml'
+      vars:
+        title: '{{ playbook_title }}'
+        TODO_TEMPLATE_ssh_port: 22
+        TODO_TEMPLATE_remote_user: 'TODO-USER'
+        TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
+
+    - import_tasks: '{{ cm_dir }}/tasks/firewall.yml'
+      vars:
+        title: '{{ playbook_title }}'
+
+    - name: '{{ playbook_title }}: dist updates and upgrades'
+      become: yes
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: '{{ playbook_title }}: install packages'
+      become: yes
+      apt:
+        pkg:
+          - tree
+          - make
+          # For becoming a non-root user
+          - acl
+          # For PostgreSQL database queries using Ansible
+          - python3-psycopg2
+        install_recommends: no
+
+    - import_tasks: '{{ cm_dir }}/tasks/users.yml'
+      vars:
+        title: '{{ playbook_title }}'
+
+    - import_tasks: '{{ cm_dir }}/tasks/lang.yml'
+      vars:
+        title: '{{ playbook_title }}'
+        go_basename: 'go1.17.6.linux-amd64.tar.gz'
+        nodejs_basename: 'node-v16.14.0-linux-x64.tar.xz'
+        nodejs_extract_dest: '/tmp/node-v16.14.0-linux-x64'
+
+    - import_tasks: '{{ cm_dir }}/tasks/web-server-and-tls/tasks.yml'
+      vars:
+        title: '{{ playbook_title }}'
+
+    - import_tasks: '{{ cm_dir }}/tasks/db/tasks.yml'
+      vars:
+        title: '{{ playbook_title }}'
+
+    - import_tasks: '{{ cm_dir }}/tasks/deploy-code.yml'
+      vars:
+        title: '{{ playbook_title }}'
+        repo: 'https://github.com/software-engr-full-stack/domain-ip-address-mapper'
+
+    - import_tasks: './tasks/secrets.yml'
+      vars:
+        title: '{{ playbook_title }}'
+
+    - import_tasks: './tasks/app-db-init.yml'
+      vars:
+        title: '{{ playbook_title }}'
+
+    - import_tasks: '{{ cm_dir }}/tasks/app/tasks.yml'
+      vars:
+        title: '{{ playbook_title }}'
+        make_task_name_to_launch_http: 'http'
+
+    - import_tasks: '{{ cm_dir }}/tasks/reboot.yml'
+      vars:
+        title: '{{ playbook_title }}'
+
+    - name: '{{ playbook_title }}: unset facts'
+      set_fact:
+        playbook_title:
+
+  handlers:
+  - name: restart-ssh
+    become: yes
+    service:
+      name: ssh
+      state: restarted

@@ -1,0 +1,22 @@
+.leaflet-container {
+  width: 100wh;
+  height: 91vh;
+}
+
+.leaflet-popup-tip {
+    background: rgba(0, 0, 0, 0) !important;
+    box-shadow: none !important;
+}
+
+.custom-urban-area-score {
+  text-shadow: 1px 1px #AAAAAA;
+}
+
+.custom-map-marker-tooltip {
+  pointer-events: auto;
+}
+
+.custom-map-markers-ip-list {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+}

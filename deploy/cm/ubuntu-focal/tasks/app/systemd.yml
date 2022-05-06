@@ -1,0 +1,67 @@
+---
+- name: '{{ group_title }}: set facts'
+  set_fact:
+    app_systemd_service_name:     'app.service'
+    app_systemd_service_template: './app.service.j2'
+    app_systemd_service_dest:     '/etc/systemd/system/app.service'
+
+    service_cmd: '/usr/local/bin/app.service.sh'
+
+- assert:
+    that:
+      - app_dir != ''
+      - service_cmd != ''
+      - deploy_user != ''
+
+- name: '{{ group_title }}: create app systemd service file'
+  become: yes
+  ansible.builtin.template:
+    src: '{{ app_systemd_service_template }}'
+    dest: '{{ app_systemd_service_dest }}'
+
+- name: '{{ group_title }}: create app systemd launcher file'
+  become: yes
+  ansible.builtin.template:
+    src: './app.service.sh.j2'
+    dest: '{{ service_cmd }}'
+    mode: '0755'
+
+- name: '{{ group_title }}: daemon reload'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - daemon-reload
+  # when: TODO => service file is changed
+
+- name: '{{ group_title }}: enable app service'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - start
+      - '{{ app_systemd_service_name }}'
+
+- name: '{{ group_title }}: enable app service'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - enable
+      - '{{ app_systemd_service_name }}'
+
+- name: '{{ group_title }}: restart nginx'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - restart
+      - nginx
+  # when: TODO => service file is changed
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    app_systemd_service_name:
+    app_systemd_service_template:
+    app_systemd_service_dest:
+    service_cmd:

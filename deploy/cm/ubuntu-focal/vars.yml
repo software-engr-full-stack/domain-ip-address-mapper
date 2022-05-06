@@ -1,0 +1,9 @@
+# TODO: hide these somewhere
+rmt_user: 'remote'
+deploy_user: 'deploy'
+
+go_target_dir:     '/usr/local/go'
+nodejs_target_dir:                   '/usr/local/nodejs'
+bin_path:          '/usr/local/go/bin:/usr/local/nodejs/bin:{{ ansible_env.PATH }}'
+
+app_dir: '/deploy/app'

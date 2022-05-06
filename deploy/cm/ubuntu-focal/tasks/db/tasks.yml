@@ -1,0 +1,7 @@
+- name: '{{ title }}: install PostgreSQL'
+  become: yes
+  apt:
+    pkg:
+      - postgresql
+      - postgresql-contrib
+    install_recommends: no

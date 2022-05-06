@@ -1,0 +1,46 @@
+---
+- name: '{{ title }}, SSH: set facts'
+  set_fact:
+    group_title: '{{ title }}, SSH'
+
+- name: '{{ group_title }}: upload configuration'
+  become: yes
+  template:
+    src: ./sshd_config.j2
+    dest: /etc/ssh/sshd_config
+  notify: restart-ssh
+
+- name: '{{ group_title }}: /etc/issue.net'
+  become: yes
+  copy:
+    dest: /etc/issue.net
+    content: ''
+
+- name: '{{ group_title }}: disable MOTD => ...dynamic'
+  become: yes
+  replace:
+    path: /etc/pam.d/sshd
+    regexp: '^\s*session\s+optional\s+pam_motd\.so\s+motd=\/run\/motd.dynamic\s*$'
+    replace: |
+
+      # ... START
+      # session    optional     pam_motd.so  motd=/run/motd.dynamic
+
+- name: '{{ group_title }}: disable MOTD => ...noupdate'
+  become: yes
+  replace:
+    path: /etc/pam.d/sshd
+    regexp: '^\s*session\s+optional\s+pam_motd.so\s+noupdate\s*$'
+    replace: |
+      # session    optional     pam_motd.so noupdate
+      # ... END
+
+- name: '{{ group_title }}: remove root .ssh dir'
+  become: yes
+  ansible.builtin.file:
+    path: '/root/.ssh'
+    state: absent
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:

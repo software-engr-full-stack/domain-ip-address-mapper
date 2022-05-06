@@ -1,0 +1,13 @@
+- name: '{{ subgroup_title }}: set facts'
+  set_fact:
+    no_cert_files: yes
+    no_domain: yes
+
+- import_tasks: ./nginx.yml
+  vars:
+    sub_subgroup_title: '{{ subgroup_title }}, nginx'
+
+- name: '{{ subgroup_title }}: unset facts'
+  set_fact:
+    no_cert_files:
+    no_domain:

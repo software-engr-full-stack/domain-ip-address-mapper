@@ -1,0 +1,85 @@
+---
+- name: '{{ title }}, firewall: set facts'
+  set_fact:
+    group_title: '{{ title }}, firewall'
+    firewall_comment: '... created by "{{ title }}, firewall"'
+
+- name: '{{ group_title }}: install'
+  become: yes
+  apt:
+    name: ufw
+    state: latest
+    # Why? See fail2ban. It might install crap like Python 2.
+    install_recommends: no
+
+- name: '{{ group_title }}: allow SSH'
+  become: yes
+  ufw:
+    rule: 'allow'
+    # from_ip: '{{ TODO }}'
+
+    # port: '{{ TODO_config_ssh_port | string }}'
+    port: '{{ 22 | string }}'
+
+    proto: 'tcp'
+    comment: '{{ firewall_comment }}'
+  # Using command module
+  # command: { argv: [ufw, allow, '{{ ansible_ssh_port }}'] }
+
+- name: '{{ group_title }}: allow HTTP'
+  become: yes
+  ufw:
+    rule: 'allow'
+    port: '{{ 80 | string }}'
+    proto: tcp
+    comment: '{{ firewall_comment }}'
+
+- name: '{{ group_title }}: allow HTTPS'
+  become: yes
+  ufw:
+    rule: 'allow'
+    port: '{{ 443 | string }}'
+    proto: tcp
+    comment: '{{ firewall_comment }}'
+
+- name: '{{ group_title }}: deny SSH ipv6'
+  become: yes
+  ufw:
+    rule: 'deny'
+    from_ip: '::/0'
+
+    # port: '{{ TODO_config_ssh_port | string }}'
+    port: '{{ 22 | string }}'
+
+    proto: 'tcp'
+    comment: '{{ firewall_comment }}'
+
+- name: '{{ group_title }}: enable'
+  become: yes
+  ufw:
+    state: enabled
+  # Using command module
+  # command: { argv: [ufw, --force, enable] }
+
+- name: '{{ group_title }}: default, deny incoming'
+  become: yes
+  ufw:
+    default: 'deny'
+    direction: 'incoming'
+    comment: '{{ firewall_comment }}'
+  # Using command module
+  # command: { argv: [ufw, default, deny, incoming] }
+
+- name: '{{ group_title }}: default, allow outgoing'
+  become: yes
+  ufw:
+    default: 'allow'
+    direction: 'outgoing'
+    comment: '{{ firewall_comment }}'
+  # Using command module
+  # command: { argv: [ufw, default, allow, outgoing] }
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:
+    firewall_comment:

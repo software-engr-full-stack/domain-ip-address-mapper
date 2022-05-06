@@ -1,0 +1,61 @@
+---
+- name: '{{ group_title }}: set facts'
+  set_fact:
+    app_sysv_service_name:     'app'
+    app_sysv_service_template: './app.sh.j2'
+    app_sysv_service_dest:     '/etc/init.d/app'
+
+    service_cmd: '{{ sysv_service_cmd }}'
+
+- name: '{{ group_title }}: create run dir'
+  become: yes
+  ansible.builtin.file:
+    path: '/var/run/app'
+    state: directory
+    recurse: yes
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+
+- assert:
+    that:
+      - app_dir != ''
+      - service_cmd != ''
+      - deploy_user != ''
+
+- name: '{{ group_title }}: create app sysv service file'
+  become: yes
+  ansible.builtin.template:
+    src: '{{ app_sysv_service_template }}'
+    dest: '{{ app_sysv_service_dest }}'
+    mode: '0755'
+
+- name: '{{ group_title }}: enable app service'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - update-rc.d
+      - '{{ app_sysv_service_name }}'
+      - defaults
+
+- name: '{{ group_title }}: enable app service'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - update-rc.d
+      - '{{ app_sysv_service_name }}'
+      - enable
+
+- name: '{{ group_title }}: start app service'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - service
+      - '{{ app_sysv_service_name }}'
+      - start
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    app_sysv_service_name:
+    app_sysv_service_template:
+    app_sysv_service_dest:
+    service_cmd:

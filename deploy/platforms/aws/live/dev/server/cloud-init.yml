@@ -1,0 +1,28 @@
+#cloud-config
+# ... !!The first line "#cloud-config" must be present for this to work!!
+
+# https://github.com/hashicorp/learn-terraform-provisioning/tree/cloudinit
+groups:
+  - remote
+
+# Add users to the system. Users are added after groups are added.
+users:
+  - default
+  - name: remote
+    gecos: remote
+    shell: /bin/bash
+    primary_group: remote
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: admin, wheel
+    lock_passwd: false
+    ssh_authorized_keys:
+      - '${aws_ssh_id_pub}'
+
+# # Probably doesn't work because trash DNS resolver
+# packages:
+#   - tree
+
+# # Doesn't seem to work, DNS seems to be working now.
+# runcmd:
+#   - sed -i 's/^[ ]*#[ ]*DNS[ ]*=[ ]*$/DNS=208.67.222.222 208.67.220.220/' /etc/systemd/resolved.conf
+#   - systemctl restart systemd-resolved.service || systemctl restart systemd-resolved.service

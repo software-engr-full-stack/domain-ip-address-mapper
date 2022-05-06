@@ -1,0 +1,67 @@
+---
+- name: '{{ title }}, deploy code: set facts'
+  set_fact:
+    group_title: '{{ title }}, deploy code'
+    fe_dir: '{{ app_dir }}/frontend'
+
+- name: '{{ group_title }}: create app dir'
+  become: yes
+  ansible.builtin.file:
+    path: '{{ app_dir }}'
+    state: directory
+    recurse: yes
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+
+- name: '{{ group_title }}: git clone'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.git:
+    repo: '{{ repo }}'
+    dest: '{{ app_dir }}'
+    clone: yes
+
+- name: '{{ group_title }}, backend: download Go modules'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command: /usr/local/go/bin/go mod download
+  args:
+    chdir: '{{ app_dir }}'
+    # creates: some-module-file
+
+- name: '{{ group_title }}, backend: create log dir'
+  become: yes
+  ansible.builtin.file:
+    path: '/var/log/app'
+    state: directory
+    recurse: yes
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+
+- name: '{{ group_title }}, frontend: install NodeJS modules'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command:
+    argv:
+      - /usr/local/nodejs/bin/npm
+      - install
+  args:
+    chdir: '{{ fe_dir }}'
+    creates: '{{ fe_dir }}/node_modules'
+
+- name: '{{ group_title }}, frontend: build'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command:
+    argv:
+      - /usr/local/nodejs/bin/npm
+      - run
+      - build
+  args:
+    chdir: '{{ fe_dir }}'
+    creates: '{{ fe_dir }}/build'
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:
+    fe_dir:

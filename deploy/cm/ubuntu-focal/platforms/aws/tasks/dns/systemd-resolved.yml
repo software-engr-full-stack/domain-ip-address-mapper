@@ -1,0 +1,36 @@
+- name: '{{ title }}, DNS systemd-resolved: set facts'
+  set_fact:
+    group_title: '{{ title }}, DNS systemd-resolved'
+
+- name: '{{ group_title }}: skip this file if DNS caching is already installed'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - dpkg
+      - -s
+      - dnsmasq
+  register: is_dns_caching_installed
+  ignore_errors: yes
+
+- name: '{{ group_title }}: use different DNS because AWS for some reason has occasional DNS issues'
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: '^\s*#DNS=\s*$'
+    line: |
+      # ...
+      DNS={{ dns_servers_line }}
+  when: is_dns_caching_installed.failed
+
+- name: '{{ group_title }}: restart DNS resolver service'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - restart
+      - systemd-resolved.service
+  when: is_dns_caching_installed.failed
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:

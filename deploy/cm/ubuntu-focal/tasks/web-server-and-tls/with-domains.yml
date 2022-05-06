@@ -1,0 +1,30 @@
+- name: '{{ subgroup_title }}: set facts'
+  set_fact:
+    tls: "{{ tls_container['result'] }}"
+
+- name: '{{ subgroup_title }}: set facts 2'
+  set_fact:
+    main_domain: "{{ tls['domain'] | trim if 'domain' in tls }}"
+    cert_files_dir: "{{ tls['cert_files_dir'] | trim if 'cert_files_dir' in tls }}"
+
+- name: '{{ subgroup_title }}: set facts 3'
+  set_fact:
+    no_domain: "{{ main_domain == '' }}"
+    no_cert_files: "{{ cert_files_dir == '' }}"
+
+- import_tasks: ./nginx.yml
+  vars:
+    sub_subgroup_title: '{{ subgroup_title }}, nginx'
+
+- import_tasks: ./letsencrypt.yml
+  vars:
+    sub_subgroup_title: "{{ subgroup_title }}, Let's Encrypt"
+  when: not no_domain
+
+- name: '{{ subgroup_title }}: unset facts'
+  set_fact:
+    tls:
+    main_domain:
+    cert_files_dir:
+    no_domain:
+    no_cert_files:

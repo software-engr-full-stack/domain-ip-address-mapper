@@ -1,0 +1,64 @@
+- name: '{{ title }}, app database init: set facts'
+  set_fact:
+    group_title: '{{ title }}, app database init'
+    database: '{{ development }}'
+
+- name: '{{ group_title }}: check if database already reset and migrated'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  community.postgresql.postgresql_query:
+    login_host: '{{ database["host"] }}'
+    db: '{{ database["name"] }}'
+    query: SELECT * FROM users
+    login_user: '{{ deploy_user }}'
+  register: result_db
+  ignore_errors: yes
+
+- name: '{{ group_title }}: check if deploy user database role exists => command'
+  ansible.builtin.command:
+    argv:
+      - 'psql'
+      - '--tuples-only'
+      - '--dbname'
+      - 'postgres'
+      - '--command'
+      - "SELECT 1 FROM pg_roles WHERE rolname='{{ deploy_user }}'"
+  become: yes
+  become_user: 'postgres'
+  register: result
+
+- name: '{{ group_title }}: check if deploy user database role exists => set facts'
+  set_fact:
+    is_deploy_user_db_role_present: '{{ (result.stdout | trim) == "1" }}'
+
+- name: '{{ group_title }}: create database user'
+  become: yes
+  become_user: 'postgres'
+  ansible.builtin.command:
+    argv:
+      - 'psql'
+      - '-d'
+      - 'postgres'
+      - '-c'
+      - 'CREATE USER {{ deploy_user }} WITH SUPERUSER CREATEDB'
+  when: not is_deploy_user_db_role_present
+
+- name: '{{ group_title }}: reset and migrate database'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command:
+    argv:
+      - '/usr/bin/make'
+      - '--file={{ app_dir }}/Makefile'
+      - 'db-reset-and-migrate'
+  args:
+    chdir: '{{ app_dir }}'
+  environment:
+    PATH: '{{ bin_path }}'
+  when: 'do_reset_and_migrate and "msg" in result_db and "unable to connect to database" in result_db.msg'
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:
+    database:
+    is_deploy_user_db_role_present:

@@ -1,0 +1,59 @@
+# ... START: custom config
+
+# ... https://medium.com/@jasonrigden/hardening-ssh-1bcb99cd4cef: START
+Protocol 2
+PermitRootLogin no
+
+# Disconnect Idle Sessions
+# ... TODO: DEBUG, set to lower duration when done developing
+ClientAliveInterval 3600
+# ClientAliveInterval 300
+ClientAliveCountMax 0
+
+# Port {{ TODO_TEMPLATE_ssh_port }}
+PasswordAuthentication no
+X11Forwarding no
+
+LoginGraceTime 20
+# ... 2022 02 09: MUST set /etc/issue.net to an empty file. I think even the setting "none" shows some info.
+Banner /etc/issue.net
+
+# ... https://linux-audit.com/audit-and-harden-your-ssh-configuration/: START
+IgnoreRhosts yes
+
+# Enable when DNS is configured.
+# UseDNS yes
+
+PermitEmptyPasswords no
+MaxAuthTries 3
+PubkeyAuthentication yes
+
+# "SSH applies the following order to determine if one can log in: DenyUsers, AllowUsers, DenyGroups, finally AllowGroups."
+# AllowUsers {{ TODO_TEMPLATE_remote_user }}@{{ TODO_TEMPLATE_allow_ssh_ip }}
+
+# Restrict allowable commands
+# OpenSSH allows restricting the commands that a user can run via the command option.
+# This is placed in the authorized_keys file, together with the allowable command and other options.
+#   command="ps",no-agent-forwarding,no-port-forwarding,no-x11-forwarding, TYPE_OF_KEY KEY COMMENT
+# ... https://linux-audit.com/audit-and-harden-your-ssh-configuration/: END
+
+# ... https://gist.github.com/lokhman/cc716d2e2d373dd696b2d9264c0287a3#set-security-limits: START
+# ... 2022 02 09: just set to default for now, set to VERBOSE to debug
+# LogLevel VERBOSE
+StrictModes yes
+# ... disable if using this server as bastion. Probably.
+AllowTcpForwarding no
+# ... I don't know. Conflict with above. Search for this key because it appears on multiple places.
+# UseDNS no
+# ... https://gist.github.com/lokhman/cc716d2e2d373dd696b2d9264c0287a3#set-security-limits: END
+
+# ... END: custom config
+
+# ... from here to EOF: config not commented out in default file
+ChallengeResponseAuthentication no
+UsePAM yes
+PrintMotd no
+# Allow client to pass locale environment variables
+AcceptEnv LANG LC_*
+# override default of no subsystems
+Subsystem       sftp    /usr/lib/openssh/sftp-server

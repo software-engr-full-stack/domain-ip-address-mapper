@@ -1,0 +1,50 @@
+---
+- hosts: default
+
+  vars:
+    title: 'deploy code'
+
+  remote_user: '{{ rmt_user }}'
+
+  tasks:
+    - name: '{{ title }}: set facts'
+      set_fact:
+        app_systemd_service_name: 'app.service'
+
+    - name: '{{ title }}: stop app service'
+      become: yes
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - stop
+          - '{{ app_systemd_service_name }}'
+
+    - name: '{{ title }}: remove app dir'
+      become: yes
+      ansible.builtin.file:
+        path: '/deploy/app'
+        state: absent
+
+    - import_tasks: ../tasks/app/deploy-code.yml
+      vars:
+        app_dir: '/deploy/app'
+        repo: 'https://github.com/software-engr-full-stack/domain-ip-address-mapper'
+
+    - name: '{{ title }}: start app service'
+      become: yes
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - start
+          - '{{ app_systemd_service_name }}'
+
+    - name: '{{ title }}: unset facts'
+      set_fact:
+        app_systemd_service_name:
+
+  handlers:
+  - name: restart-ssh
+    become: yes
+    service:
+      name: ssh
+      state: restarted

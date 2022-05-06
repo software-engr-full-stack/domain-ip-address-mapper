@@ -1,0 +1,22 @@
+default: &default
+  adapter: 'postgres'
+  encoding: utf-8
+  # host: '???'
+  # port: -1
+  user: 'postgres'
+  password: 't3st-vm-db-passw0rd'
+  # max_open_conns: 0
+  # search_path: '???'
+  # pool: 15
+
+development:
+  <<: *default
+  name: 'demo_dev'
+
+test:
+  <<: *default
+  name: 'demo_test'
+
+production:
+  <<: *default
+  name: 'demo'

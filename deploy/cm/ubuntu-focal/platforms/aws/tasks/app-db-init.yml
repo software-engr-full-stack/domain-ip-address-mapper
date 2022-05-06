@@ -1,0 +1,57 @@
+- name: '{{ title }}, app database init: set facts'
+  set_fact:
+    group_title: '{{ title }}, app database init'
+    database: '{{ development }}'
+
+# - name: '{{ group_title }}: DEBUG'
+#   # become: yes
+#   # become_user: '{{ deploy_user }}'
+#   ansible.builtin.command:
+#     argv:
+#       - dig
+#       - '{{ database["host"] }}'
+
+#       # - psql
+#       # - --host
+#       # - '{{ database["host"] }}'
+#       # - --username
+#       # - '{{ database["user"] }}'
+#       # - --password
+#       # - '{{ database["password"] }}'
+#       # - --command
+#       # - '\du'
+#   register: result
+
+# - debug:
+#     msg: '{{ result }}'
+
+- name: '{{ group_title }}: check if database already reset and migrated'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  community.postgresql.postgresql_query:
+    login_host: '{{ database["host"] }}'
+    db: '{{ database["name"] }}'
+    login_user: '{{ database["user"] }}'
+    login_password: '{{ database["password"] }}'
+    query: SELECT * FROM users
+  register: result_db
+  ignore_errors: yes
+
+- name: '{{ group_title }}: reset and migrate database'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command:
+    argv:
+      - '/usr/bin/make'
+      - '--file={{ app_dir }}/Makefile'
+      - '{{ make_task_name_to_reset_and_migrate_db }}'
+  args:
+    chdir: '{{ app_dir }}'
+  environment:
+    PATH: '{{ bin_path }}'
+  when: 'do_reset_and_migrate and "msg" in result_db and "unable to connect to database" in result_db.msg'
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:
+    database:

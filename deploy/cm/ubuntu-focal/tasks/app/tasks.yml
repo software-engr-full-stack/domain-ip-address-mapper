@@ -1,0 +1,36 @@
+---
+- name: '{{ title }}, app: set facts'
+  set_fact:
+    section_title: '{{ title }}, app'
+
+- name: '{{ section_title }}: set facts 2'
+  set_fact:
+    group_title: '{{ section_title }}, systemd'
+
+- name: '{{ section_title }}, app: inside container or not'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - grep
+      - -sq
+      - 'docker\|lxc'
+      - /proc/1/cgroup
+  register: is_inside_container
+  ignore_errors: yes
+
+- import_tasks: ./systemd.yml
+  when: is_inside_container.failed
+
+- name: '{{ section_title }}, app: set facts 3'
+  set_fact:
+    group_title: '{{ section_title }}, sysv'
+
+- import_tasks: ./sysv.yml
+  when: not is_inside_container.failed
+  vars:
+    group_title: '{{ title }}, sysv'
+
+- name: '{{ section_title }}: unset facts'
+  set_fact:
+    section_title:
+    group_title:

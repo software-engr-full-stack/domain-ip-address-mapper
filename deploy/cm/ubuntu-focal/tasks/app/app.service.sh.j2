@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# ... used by systemd app service
+
+run() {
+  cd '{{ app_dir }}'
+  make '{{ make_task_name_to_launch_http }}'
+}
+
+_logger() {
+  local msg="${1:?ERROR => must pass log message}"
+  local msg_type="${2-INFO}"
+  logger "... $msg_type: $msg"
+}
+
+error() {
+  local msg="$${1-}"
+  [ -n "$msg" ] || read msg
+  if [ -z "$msg" ]; then
+    _logger 'must pass or pipe error message' 'ERROR'
+    exit 1
+  fi
+
+  _logger "$msg" 'ERROR'
+
+  exit 1
+}
+
+set -o errexit
+set -o pipefail
+set -o nounset
+run "$@"

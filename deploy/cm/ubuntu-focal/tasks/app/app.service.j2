@@ -1,0 +1,16 @@
+[Unit]
+Description=The App
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+ExecStart={{ service_cmd }}
+Environment=PATH={{ bin_path }}
+
+Type=simple
+Restart=always
+RestartSec=2
+User={{ deploy_user }}
+
+[Install]
+WantedBy=multi-user.target

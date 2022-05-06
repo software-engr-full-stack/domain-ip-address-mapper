@@ -1,0 +1,21 @@
+---
+- name: '{{ title }}, web server and TLS: set facts'
+  set_fact:
+    group_title: '{{ title }}, web server and TLS'
+    subgroup_title: '{{ title }}, web server and TLS, no domain'
+
+- import_tasks: ./no-domain.yml
+  when: domains is not defined or tls_container is not defined
+
+- name: '{{ title }}, web server and TLS: set facts'
+  set_fact:
+    subgroup_title: '{{ title }}, web server and TLS, with domain'
+
+- import_tasks: ./with-domains.yml
+  vars:
+  when: domains is defined and tls_container is defined
+
+- name: '{{ group_title }}: unset facts'
+  set_fact:
+    group_title:
+    subgroup_title:

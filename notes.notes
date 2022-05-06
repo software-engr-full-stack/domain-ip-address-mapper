@@ -1,0 +1,2387 @@
+-----------------------------------------------------------
+    2022 03 15
+-----------------------------------------------------------
+
++ gRPC
+  > Envoy
+  > Server
+    @ Logger (interceptor)
+  > Web client
+
+-----------------------------------------------------------
+    2022 03 13
+-----------------------------------------------------------
+
+// + Test the dnsmasq on the test VM
+// + Apply what is learned to AWS
+
+-----------------------------------------------------------
+    2022 03 04
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+      12:08.58 total // real zero to app, Ansible strategy = default, Cal Poly Pomona slow Internet
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  // + Make generic CM Makefile. Put deploy code in there.
+  // + Fix AWS RDS temporary failure in name resolution. Install dnsmasq.
+
+  + Clean up
+    > Makefiles
+    > priv files
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Separate test MV make tasks
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        if tls-files-present; then
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 03 03
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+      12:08.58 total // real zero to app, Ansible strategy = default, Cal Poly Pomona slow Internet
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + Make generic CM Makefile. Put deploy code in there.
+  + Fix AWS RDS temporary failure in name resolution. Install dnsmasq.
+
+  + Clean up
+    > Makefiles
+    > priv files
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Separate test MV make tasks
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        if tls-files-present; then
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 03 02
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+      12:08.58 total // real zero to app, Ansible strategy = default, Cal Poly Pomona slow Internet
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + IMPORTANT:
+    > Copy only secrets that are needed by the target. Don't copy all.
+    > Move Ansible app db out of app
+    > Move Ansible app deploy code out of app
+  + Reorganize
+  + Make Digital Ocean work
+    > Install firewall
+
+  + Clean up
+    > Makefiles
+    > priv files
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Separate test MV make tasks
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        if tls-files-present; then
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 03 01
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+      12:08.58 total // real zero to app, Ansible strategy = default, Cal Poly Pomona slow Internet
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + IMPORTANT:
+    > Copy only secrets that are needed by the target. Don't copy all.
+    > Move Ansible app db out of app
+    > Move Ansible app deploy code out of app
+  + Reorganize
+    // > deploy => deploy/platforms
+  + Make Digital Ocean work
+    > Install all in one server
+      % Test if able to handle small traffic
+    > Install firewall
+
+  + Clean up
+    > Makefiles
+    > priv files
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        if tls-files-present; then
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 28
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+      12:08.58 total // real zero to app, Ansible strategy = default, Cal Poly Pomona slow Internet
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  // + Move domain config to platform directory
+  // + Disable urban area data
+  // + Create redeployment of code (CI/CD hack)
+  + Make Digital Ocean work
+    > Install all in one server
+      % Test if able to handle small traffic
+    > Install firewall
+
+  + Clean up
+    > Makefiles
+    > priv files
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        if tls-files-present; then
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 26
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+      12:08.58 total // real zero to app, Ansible strategy = default, Cal Poly Pomona slow Internet
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + Clean up
+    > Makefiles
+    > priv files
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        if tls-files-present; then
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 21
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+      12:08.58 total // real zero to app, Ansible strategy = default, Cal Poly Pomona slow Internet
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        if tls-files-present; then
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 20
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+      12:08.58 total // real zero to app, Ansible strategy = default, Cal Poly Pomona slow Internet
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        if tls-files-present; then
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Documentation
+  + DNS, connect IP to registered domain
+  // + Reboot after CM run
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 19
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        // install cerbot
+        // do cron renewal
+        if tls-files-present; then
+          // configure nginx with tls config template (TODO)
+          // copy tls-files
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  // + Make full zero to app (infra + CM)
+  // + Rename aws...dev/test to ...dev/server
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Documentation
+  + DNS, connect IP to registered domain
+  // + Reboot after CM run
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 18
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > From zero to working app (infra + CM):
+      11:14.29 total // reboot error, forget to become root
+      3:19.25 total  // rerun after successful run
+      12:30.00 total // real zero to app, Ansible strategy = default
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu
+      [3:07.02 total, 3:12.63 total, 3:12.33 total, 3:12.85 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Fix TLS: run TLS, then retrieve files
+    > https://community.letsencrypt.org/t/how-to-install-letsencrypt-on-a-new-server-with-existing-certificate/26372/13
+    > Create tool to handle the downloaded TLS files from remote
+    > Logic
+      if domain is defined; then
+        // install cerbot
+        // do cron renewal
+        if tls-files-present; then
+          // configure nginx with tls config template (TODO)
+          // copy tls-files
+        else
+          do TLS certbot thing
+            simulate certbot exec
+            copy TLS files produced by certbot in remote server to local host
+
+  // + Make full zero to app (infra + CM)
+  // + Rename aws...dev/test to ...dev/server
+  + One remote IP => multiple IPs for Ansible inventory
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Documentation
+  + DNS, connect IP to registered domain
+  // + Reboot after CM run
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 17
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu [3:07.02 total, 3:12.63 total, 3:12.33 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+        6:12.42 total - from blank slate to finish, no errors
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + Fix fastly.com 1psb.fastly.com Temporary failure in name resolution
+  + Create loading screen on first visit (I think return null is being shown)
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  // + Do more robust hostname thing
+  // + Automate Certbot
+    // > Installation
+      // snap install --classic certbot
+      // ln -s /snap/bin/certbot /usr/bin/certbot
+      // certbot --non-interactive --nginx --domains cloudsandbox.dev,www.cloudsandbox.dev
+    // > Renewal
+
+  // Own IP CIDR blog in sec group + Figure out why we can't curl our own EIP from the instance hosting the EIP
+    // X > Add public hostname (cloudsandbox.dev) to /etc/hosts => 127.0.0.1
+  + Simplify main and CM Makefile mess
+  + Create exec to generate AWS database config file after creating RDS
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Documentation
+  + DNS, connect IP to registered domain
+  + Reboot after CM run
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 16
+-----------------------------------------------------------
+
+* Costs *
+  + HTTPS
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu [3:07.02 total, 3:12.63 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total, 5:43.78 total]
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+* App *
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + Figure out why we can't curl our own EIP from the instance hosting the EIP
+    > Add public hostname (cloudsandbox.dev) to /etc/hosts => 127.0.0.1
+  // + Deal with associate_public_ip_address mess. Always true when associating instance with EIP.
+  // + Open port 443 for HTTPS
+  // + Make sure DNS name site works in HTTP (not secure)
+  + Simplify main and CM Makefile mess
+  // + Make database reset and migrate automatic. If database is already ready, don't reset and migrate.
+  + Create exec to generate AWS database config file after creating RDS
+  // + Simplify systemd init trash.
+    // > Create script to launch from service file (cd to dir, etc.)
+  + Check docker trash image init.sh if /usr/bin/bash is really correct => change to /usr/bin/env bash if present
+  + Create ansible variable to if nginx needs to be installed or not
+  + Parameterize back end port
+  + Documentation
+  + DNS, connect IP to registered domain
+  + Reboot after CM run
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 15
+-----------------------------------------------------------
+
+* App *
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Create env var for backend port (with defaults) => config package somewhere
+
+* Infra *
+  + HTTPS
+  // + Separate elastic IP creation from the rest of the resources
+  // + Associate elastic IP with instance
+  // + Remove bastion
+
+  + Costs per hour
+    database db.t4g.micro: 0.021
+    bastion       t2.nano: 0.0069
+    server       t2.micro: 0.0184
+    -----------------------------
+                           0.0463
+
+    !Elastic IP!
+    https://www.cloudhealthtech.com/blog/elastic-ip-pricing
+    Additional IP addresses and IP addresses not applied to a running instance currently incur an Elastic IP pricing charge of $0.005 per hour on a pro-rata basis. And an Elastic IP pricing charge of $0.10 is incurred for each re-map after the one hundred limit is reached.
+    Although individually AWS Elastic IP pricing isn't expensive, each unattached Elastic IP address (or IP address assigned to a stopped instance) wastes $3.60 of a business’s budget per thirty-day month.
+
+  + Logs
+    > make aws-live-dev-test-aws action=apply  6.28s user 0.83s system 3% cpu [3:07.02 total, 3:12.63 total]
+    > make cm-ubuntu-focal-run remote_ip=54.219.137.163  157.41s user 8.04s system 26% cpu [10:21.62 total, 6:30.13 total]
+      From 11 min. to 6.5 min. after hostname => /etc/hosts
+      https://serverfault.com/questions/38114/why-does-sudo-command-take-long-to-execute
+
+  + Create ansible variable to if nginx needs to be installed or not
+  // Turns out to be adding hostname to /etc/hosts + Speed up Ansible if possible
+  + Parameterize back end port
+  + Documentation
+  + DNS, connect IP to registered domain
+  // + terraform output -raw public_ip
+  + Reboot after CM run
+  + Docker test VM make it so it doesn't require sudo password?
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 14
+-----------------------------------------------------------
+
+* App *
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+
+* Infra *
+  + terraform output -raw public_ip
+  + Reboot after CM run
+  // + Test different instance types for speed (bigger memory or more CPUs?)
+  + Docker test VM make it so it doesn't require sudo password?
+  // + Figure out how to manage service commands for AWS (make aws-http) and test VM (make test-vm-http)
+  + Change hardcoded tags (RDS resource)
+  + Deploy to Heroku
+  + Make ASG work
+  // + Test deploy to AWS
+    // > Do the user data for instance
+      // @ Hide the PEM id.pub or parameterize it
+      // Discarded @ Figure out what to do with bastion user data (add it? Discard it?)
+      // @ https://learn.hashicorp.com/tutorials/terraform/cloud-init?in=terraform/provision
+      // @ AWS EC2 packages: probably just "tree"
+      // @ Make CM work with AWS
+        // % Do RDS
+      // @ Packages to be installed
+      // @ Use AWS CLI to get IP address of instances
+
+* Back burner *
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 13
+-----------------------------------------------------------
+
+* App *
+  // + Find out why NYC no urban area data
+  // + Refactor urban area search match
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+
+* Infra *
+  // One is the bastion => + Find out why 2 instances are launched in the same AZ
+
+  + Deploy to Heroku
+  + Make ASG work
+  + Test deploy to AWS
+    > Do the user data for instance
+      @ terraform output -raw public_ip
+      @ Hide the PEM id.pub or parameterize it
+      @ Figure out what to do with bastion user data (add it? Discard it?)
+      @ https://learn.hashicorp.com/tutorials/terraform/cloud-init?in=terraform/provision
+      @ AWS EC2 packages: probably just "tree"
+      @ Make CM work with AWS
+    // > Look around the instance, verify with test VM init.sh what needs to be done:
+      @ Packages to be installed
+    // X not necessary > Make test VM init.sh work? Is this even necessary?
+
+* Back burner *
+  // X systemd or sys v should be good enough + Run using supervisord? Must be able to restart automatically
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 12
+-----------------------------------------------------------
+
+* App *
+  + Find out why NYC no urban area data
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  // + Clean up Makefiles
+    // > Clean deploy/docker/Makefile
+
+* Infra *
+  // + CM: run app
+    // > Run app as deployment user
+    // > Use templates for systemd and sysv init files
+  + Deploy to Heroku
+  + Test deploy to AWS
+
+* Back burner *
+  + Run using supervisord? Must be able to restart automatically
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 11
+-----------------------------------------------------------
+
+* App *
+  // + Install systemd because it is not installed in base image
+    // > Hack SSH
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Clean up Makefiles
+  // + Create separate repo for app
+
+* Infra *
+  // + Reorganize files, probably move cm dir outside aws dir
+  + CM: run app
+    > Run app as deployment user
+      // @ Run app
+  + Deploy to Heroku
+  + Test deploy to AWS
+
+* Back burner *
+  + Run using supervisord? Must be able to restart automatically
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 10
+-----------------------------------------------------------
+
+* App *
+  + Make it work in different environments (localhost:3k, localhost:8k serving build, AWS, etc.)
+  + Clean up Makefiles
+  + Create separate repo for app
+  // + Require POST method for queries to API
+  // + Change priv file key to free_geo_ip_app_key
+  // + Make the IP locator API optional
+  // + Put request logs in the back end
+    // > Write logs to different files
+  // + Make new setup work with custom HTTP error handler
+  // + Move CORS addresses to config (decide dev or prod, etc.)
+  // + Make test VM Makefile only runnable form app root dir.
+  // + Do test VM database things
+
+* Infra *
+  + Reorganize files, probably move cm dir outside aws dir
+  + CM: run app
+    // > Copy secrets to target instance
+    // > Touch log file with the right ownership
+    > Run app as deployment user
+      // @ Setup database
+        // % Docker
+        // % Reset, migrate, seed, etc.
+      // @ Install NodeJS
+      // @ Build JS
+      @ Run app
+  + Deploy to Heroku
+  + Test deploy to AWS
+
+* Back burner *
+  + Run using supervisord? Must be able to restart automatically
+  + Make front end error reporting more robust. Probably add a on close (onClose) handler.
+    See src/Map/Input.js Alert.
+  + Remove init and main docker compose files since you can do docker-compose up name_of_service
+
+-----------------------------------------------------------
+    2022 02 09
+-----------------------------------------------------------
+
+* App *
+  // + Make JS build work
+  + Make the IP locator API optional
+  + Put request logs in the back end
+  + Make new setup work with custom HTTP error handler
+
+* Infra *
+  // + CM: Harden SSH
+  // + CM: Install languages
+  + CM: run app
+    // > Fetch from repo
+    > Install language packages
+    > Copy secrets to target instance
+    > Run app as deployment user
+  + Deploy to Heroku
+
+-----------------------------------------------------------
+    2022 02 09, TODO Later
+-----------------------------------------------------------
+
+  + Harden SSH
+    + Port {{ config_ssh_port }}
+    + AllowUsers {{ config_remote_user }}@{{ g_allow_ssh_ip }}
+  + Use free Terraform cloud?
+  + Do CI/CD
+  + Deploy Docker to cloud
+  + Review BitBucket AWS cert repo
+  + Review the BitBucket Terraform AWS project
+    + Review gruntworks?.io Terraform article
+    + Review README
+    + Make it work
+    + Improve
+  + nginx => Docker
+  + Make that IP location API that requires a key optional
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Document app in README
+  + Do create ansible vault file from private files exec
+  + Do Packer/Ansible for hardened image
+    https://medium.com/cloud-life/building-a-cis-hardened-ami-on-aws-for-free-87b482b52ccb
+    https://github.com/thilinaba/aws-cis-ami
+  + Do ansible for:
+    + Bastion
+    + Regular instance
+  + Build EC2-based load balancer because ELB resource is not supported by LocalStack
+    + No auto scaling for LocalStack. Just use EC2s.
+  + Final product is probably ASG + the Domain IP Mapper app
+  + Simplify
+  + Go through the code.
+    + Go to AWS and other docs to see what NAT, IGW, EIP, etc. does.
+  + Rewrite Terraform AWS README. There's no live/dev/base directory anymore.
+  + Scan through Terraform primitives. See what's available.
+  + Figure out how to reduce Docker image sizes
+  + Figure out how to reduce Docker image sizes
+  + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+  + Front end
+    + Use typescript
+    + React review
+      + https://reactjs.org/docs/refs-and-the-dom.html
+      + React context and useRef
+    + Some basic automated tests
+    + Remove hired.com as default, no default domain, set map to country of client's IP address
+  + Find out why backend is sending empty urban area
+  + Write manual yahoo.com debug test
+  + Use yahoo.com test data
+  + Use yandex.com test data
+  + Make tests not use API resources. Create fake API services.
+  + Make IsEmpty more robust. Check if field exists.
+  + Refactor, simplify, make more clear app service
+  + Hedged requests
+  + Move root user creation out of app service to an initial seeder
+  + Benchmark and optimize
+  + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 02 08
+-----------------------------------------------------------
+
+* Terraform *
+  + Do create ansible vault file from private files exec
+  // + https://stackoverflow.com/questions/27022373/python3-importerror-no-module-named-ctypes-when-using-value-from-module-mul
+  // + asdf reshim
+  + Do Packer/Ansible for hardened image
+    https://medium.com/cloud-life/building-a-cis-hardened-ami-on-aws-for-free-87b482b52ccb
+    https://github.com/thilinaba/aws-cis-ami
+  + Do ansible for:
+    + Bastion
+    + Regular instance
+  + Build EC2-based load balancer because ELB resource is not supported by LocalStack
+    + No auto scaling for LocalStack. Just use EC2s.
+  + Final product is probably ASG + the Domain IP Mapper app
+  + Simplify
+  + Go through the code.
+    + Go to AWS and other docs to see what NAT, IGW, EIP, etc. does.
+  + Rewrite Terraform AWS README. There's no live/dev/base directory anymore.
+  + Scan through Terraform primitives. See what's available.
+
+* Domain IP Address Mapper *
+  + Deploy to Heroku
+  + Use free Terraform cloud?
+  + Do CI/CD
+  + Deploy Docker to cloud
+  + Review BitBucket AWS cert repo
+  + Review the BitBucket Terraform AWS project
+    + Review gruntworks?.io Terraform article
+    + Review README
+    + Make it work
+    + Improve
+  + nginx => Docker
+  + Make that IP location API that requires a key optional
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Document app in README
+  + Back burner:
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 02 07
+-----------------------------------------------------------
+
+* Terraform *
+  + https://stackoverflow.com/questions/27022373/python3-importerror-no-module-named-ctypes-when-using-value-from-module-mul
+  + asdf reshim
+  + Do Packer/Ansible for hardened image
+    https://medium.com/cloud-life/building-a-cis-hardened-ami-on-aws-for-free-87b482b52ccb
+    https://github.com/thilinaba/aws-cis-ami
+  + Do ansible for:
+    + Bastion
+    + Regular instance
+  + Build EC2-based load balancer because ELB resource is not supported by LocalStack
+    + No auto scaling for LocalStack. Just use EC2s.
+  + Final product is probably ASG + the Domain IP Mapper app
+  + Simplify
+  + Go through the code.
+    + Go to AWS and other docs to see what NAT, IGW, EIP, etc. does.
+  + Rewrite Terraform AWS README. There's no live/dev/base directory anymore.
+  + Scan through Terraform primitives. See what's available.
+
+* Domain IP Address Mapper *
+  + Deploy to Heroku
+  + Use free Terraform cloud?
+  + Do CI/CD
+  + Deploy Docker to cloud
+  + Review BitBucket AWS cert repo
+  + Review the BitBucket Terraform AWS project
+    + Review gruntworks?.io Terraform article
+    + Review README
+    + Make it work
+    + Improve
+  + nginx => Docker
+  + Make that IP location API that requires a key optional
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Document app in README
+  + Back burner:
+    + Figure out how to reduce Docker image sizes
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 02 06
+-----------------------------------------------------------
+
+* Terraform *
+  + Build EC2-based load balancer because ELB resource is not supported by LocalStack
+  + Final product is probably ASG + the Domain IP Mapper app
+  + Simplify
+  + Go through the code.
+    + Go to AWS and other docs to see what NAT, IGW, EIP, etc. does.
+  + Rewrite Terraform AWS README. There's no live/dev/base directory anymore.
+  + Scan through Terraform primitives. See what's available.
+
+* Domain IP Address Mapper *
+  + Deploy to Heroku
+  + Use free Terraform cloud?
+  + Do CI/CD
+  + Deploy Docker to cloud
+  + Review BitBucket AWS cert repo
+  + Review the BitBucket Terraform AWS project
+    + Review gruntworks?.io Terraform article
+    + Review README
+    + Make it work
+    + Improve
+  + nginx => Docker
+  + Make that IP location API that requires a key optional
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Document app in README
+  + Back burner:
+    + Figure out how to reduce Docker image sizes
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 02 04
+-----------------------------------------------------------
+
+// * Other *
+if type terraform >/dev/null 2>&1; then
+  autoload -U +X bashcompinit && bashcompinit
+  complete -o nospace -C /usr/bin/terraform terraform
+fi
+
+if type aws >/dev/null 2>&1; then
+  complete -C '/opt/sys/exec/aws.d/bin/aws_completer' aws
+fi
+
+* Terraform *
+  // + Do LocalStack
+  + Final product is probably ASG + the Domain IP Mapper app
+  + Simplify
+  + Go through the code.
+    + Go to AWS and other docs to see what NAT, IGW, EIP, etc. does.
+  + Rewrite Terraform AWS README. There's no live/dev/base directory anymore.
+  + Scan through Terraform primitives. See what's available.
+
+* Domain IP Address Mapper *
+  + Deploy to Heroku
+  + Use free Terraform cloud?
+  + Do CI/CD
+  + Deploy Docker to cloud
+  + Review BitBucket AWS cert repo
+  + Review the BitBucket Terraform AWS project
+    + Review gruntworks?.io Terraform article
+    + Review README
+    + Make it work
+    + Improve
+  + nginx => Docker
+  + Make that IP location API that requires a key optional
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Document app in README
+  + Back burner:
+    + Figure out how to reduce Docker image sizes
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 02 03
+-----------------------------------------------------------
+
+* Terraform *
+  + Final product is probably ASG + the Domain IP Mapper app
+  + Simplify
+  + Go through the code.
+    + Go to AWS and other docs to see what NAT, IGW, EIP, etc. does.
+  + Rewrite Terraform AWS README. There's no live/dev/base directory anymore.
+  + Scan through Terraform primitives. See what's available.
+
+* Domain IP Address Mapper *
+  + Deploy to Heroku
+  + Use free Terraform cloud?
+  + Do CI/CD
+  + Deploy Docker to cloud
+  + Review BitBucket AWS cert repo
+  + Review the BitBucket Terraform AWS project
+    + Review gruntworks?.io Terraform article
+    + Review README
+    + Make it work
+    + Improve
+  + nginx => Docker
+  + Make that IP location API that requires a key optional
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Document app in README
+  + Back burner:
+    + Figure out how to reduce Docker image sizes
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 02 02
+-----------------------------------------------------------
+
+// * Other *
+  // + Do log scripts
+
+* Domain IP Address Mapper *
+  + Use free Terraform cloud?
+  + Do CI/CD
+  + Deploy Docker to cloud
+  + Review BitBucket AWS cert repo
+  + Review the BitBucket Terraform AWS project
+    + Review gruntworks?.io Terraform article
+    + Review README
+    + Make it work
+    + Improve
+  + nginx => Docker
+  + Make that IP location API that requires a key optional
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Document app in README
+  + Back burner:
+    + Figure out how to reduce Docker image sizes
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 02 01
+-----------------------------------------------------------
+
+// * Terraform *
+  // 1. Install: https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/docker-get-started
+  // 2. Setup autocomplete (chown .zshrc)
+
+// * Docker *
+  // Networking in Compose https://docs.docker.com/compose/networking/
+  // By default Compose sets up a single network for your app. Each container for a service joins the default network and is both reachable by other containers on that network, // and discoverable by them at a hostname identical to the container name.
+
+* Domain IP Address Mapper *
+  // + Setup Terraform and AWS
+    // + User, keys, etc.
+    // + Setup new keys
+  + Make that IP location API that requires a key optional
+  // X + Run postgres as non-root to make data dir not root
+  // + Persist postgres data
+    // + Put Postgres pgdata in host directory, volume: ./:/var/lib/postgresqhwadfja
+
+  // + https://stackoverflow.com/questions/55502234/docker-compose-wait-til-dependency-container-is-fully-up-before-launching
+    // https://github.com/compose-spec/compose-spec/blob/master/spec.md#healthcheck
+
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Dockerize
+    + Figure out how to reduce image sizes
+    // + App
+      // + Dockerize app
+      // + Make Dockerized app and database work together
+  + Document app in README
+  + Back burner:
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 31
+-----------------------------------------------------------
+
+* Docker *
+  Networking in Compose https://docs.docker.com/compose/networking/
+  By default Compose sets up a single network for your app. Each container for a service joins the default network and is both reachable by other containers on that network, and discoverable by them at a hostname identical to the container name.
+
+* Other *
+  // Change ownership of Docker bash completion files to root
+
+* Domain IP Address Mapper *
+  + Put Postgres pgdata in host directory, volume: ./:/var/lib/postgresqhwadfja
+
+  + https://stackoverflow.com/questions/55502234/docker-compose-wait-til-dependency-container-is-fully-up-before-launching
+    https://github.com/compose-spec/compose-spec/blob/master/spec.md#healthcheck
+
+  + DNS problem 1.1.1.1, try different base image, try plain Debian or Ubuntu image, try previous Go image version
+  // + Install Docker Compose and bash completions on PC
+    // + https://raw.githubusercontent.com/docker/cli/v20.10.12/contrib/completion/bash/docker
+    // + https://docs.docker.com/compose/completion/
+  // + Install Docker on laptop
+    // + https://docs.docker.com/engine/install/ubuntu/
+    // + /main/var/lib/docker => /var/lib/docker => /etc/fstab
+    // + usermod -a -G docker michael
+    // + Ubuntu focal replace "deb... una (mint)"
+    // + Reboot
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Dockerize
+    + Figure out how to reduce image sizes
+    // + Passwords file, see PostgreSQL Docker hub page
+    // + Ports
+    // + Database
+    + App
+      + Dockerize app
+      + Make Dockerized app and database work together
+      // + Make up work with Dockerized database
+  + Document app in README
+  + Back burner:
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 30
+-----------------------------------------------------------
+
+* Domain IP Address Mapper *
+  + Install Docker on laptop
+    + https://docs.docker.com/engine/install/ubuntu/
+    + /main/var/lib/docker => /var/lib/docker => /etc/fstab
+    + usermod -a -G docker michael
+    + Ubuntu focal replace "deb... una (mint)"
+    + Reboot
+  // + Refactor models
+    // + Use map[string]string (convert model to hash, see gorm Where using hash instead of model struct)
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probabl environment variables, etc.)
+  + Deploy
+  + Dockerize
+  + Document app in README
+  + Back burner:
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 29
+-----------------------------------------------------------
+
+* Domain IP Address Mapper *
+  + Refactor models
+    // + Use map[string]string (convert model to hash, see gorm Where using hash instead of model struct)
+  // + Find out why cdc.gov fails
+  // + Create error pop up for failures
+  // + Don't fetch from API when clicking left side bar domain name
+  + Add link to code repository
+  + Parameterize things like the back end server URL in front end (probably environment variables, etc.)
+  + Deploy
+  + Dockerize
+  + Document app in README
+  + Back burner:
+    + Find out why aljazeera.com Washington DC, Stockholm SE does not have urban area data
+    + Front end
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+      + Some basic automated tests
+      + Remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 28
+-----------------------------------------------------------
+
+* Domain IP Address Mapper *
+  + Find out why cdc.gov fails
+  + Create error pop up for failures
+  + Deploy
+  + Dockerize
+  + Document app in README
+  // + Change app name
+  // + Front end: show everything on map
+    // + Button to show text about what the app does
+    // + Do my recent searches
+      // + Clear searches button
+      // X + Show all button
+      // + Save to cookies?
+      // + Put recent data in an array so you don't have to pull data from back end
+      // + Click on recent domain names to show markers
+    // ? + TODO: if not OK === true, show error
+    // ? + TODO: if no IPs, show nothing
+    // + Features
+      // X + Maybe display multiple domains?
+      // X + Maybe have the ability to hide IPS from domains (check box)
+  + Back burner:
+    + Front end
+      // + Show list of IPs per location instead of just one IP
+      + Use typescript
+      + React review
+        + https://reactjs.org/docs/refs-and-the-dom.html
+        + React context and useRef
+        + Some basic automated tests
+    + Front end: remove hired.com as default, no default domain, set map to country of client's IP address
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 27
+-----------------------------------------------------------
+
+* IP Mapper *
+  // + Fix location ISP, etc. move to IP
+  // + Fix duckduckgo.com
+  + Front end: show everything on map
+    + Do my recent searches
+      + Save to cookies?
+      + Put recent data in an array so you don't have to pull data from back end
+      // + Initial, just the text, no click interaction
+    + TODO: if not OK === true, show error
+    + TODO: if no IPs, show nothing
+    // + Fix yahoo.com crash when clicking on marker with no urban area
+    + Misc
+      // + Wait indicator when waiting for response from back end
+      // + Integrate UI maybe
+      // X + Change background color on pop up
+    // + Do input for domain name
+    + Features
+      + Maybe display multiple domains?
+      + Maybe have the ability to hide IPS from domains (check box)
+    + Use typescript
+    + React review
+      + https://reactjs.org/docs/refs-and-the-dom.html
+      + React context and useRef
+      + Some basic automated tests
+  + Back burner:
+    + Find out why backend is sending empty urban area
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 26
+-----------------------------------------------------------
+
+* Quality of Life *
+  // + Fix yandex.com
+  // + Create view full name => city, region code, country code
+  // + Investigate why FullName test is failing
+
+  + Front end: show everything on map
+    // + Build leaflet based thing
+    // + Get rid of OpenLayers
+    // + Try leaflet
+      // + Put OL in its own directory
+    // + Change longitude/latitude array to full markers/IP data array
+    // + Remove show markers
+    // + Display domain, city name and IP address
+    // X + Refactor markers to separate marker data and rendering of marker React component
+    // + CLICK X instead Do marker hover info show
+      // X + Set listener
+        // X + Clean up required?
+    + Do input for domain name
+    + Features
+      + Maybe display multiple domains?
+      + Maybe have the ability to hide IPS from domains (check box)
+    + Integrate UI package
+    + Use typescript
+    + React review
+      + https://reactjs.org/docs/refs-and-the-dom.html
+      + React context and useRef
+      + Some basic automated tests
+  + Back burner:
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Use yandex.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 25
+-----------------------------------------------------------
+
+* Quality of Life *
+  + https://stackoverflow.com/questions/38291471/openlayers-3-zoom-map-to-coordinates-in-array
+  + https://gis.stackexchange.com/questions/181310/openlayers-3-fit-to-extent
+  + https://openlayers.org/en/latest/apidoc/module-ol_proj.html#.transformExtent
+
+  + https://reactjs.org/docs/refs-and-the-dom.html
+
+  + Fix yandex.com
+
+  + React context and useRef
+  + https://medium.com/swlh/how-to-incorporate-openlayers-maps-into-react-65b411985744
+  + https://openlayers.org/en/latest/doc/quickstart.html
+  + Front end: show everything on map
+    // + Fix zoom
+    // + Fix centering
+    // + Refactor data fetching
+    // + Center of coordinates
+    // + Fix flashy thing
+    // + Integrate data from back end
+    // + Make example work
+    // + Clean up example
+    // + Review React
+    // + Review JS
+    // X + Look at past React code about components, code organization, etc.
+    + Use typescript
+    // + Do fetch from back end
+    // + Review hooks
+  // + Do the HTTP handler thing (the web server)
+    // + Implement
+    // + Create tests for handler error handler
+    // + Create tests
+    // + Test so that same domain request shouldn't add more database data
+  + Back burner:
+    + Write manual yahoo.com debug test
+    + Use yahoo.com test data
+    + Make tests not use API resources. Create fake API services.
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 24
+-----------------------------------------------------------
+
+* Quality of Life *
+  + React context and useRef
+  + https://medium.com/swlh/how-to-incorporate-openlayers-maps-into-react-65b411985744
+  + https://openlayers.org/en/latest/doc/quickstart.html
+  // + Fix Quincy, Washington ? TeleportFullName Quincy MA issue
+  // + Fix Singapore hack wrong logic
+  // + If no urban area found, don't fail
+  // + More robust urban area matching (yahoo.com Singapore 106.10.137.0)
+  + Front end: show everything on map
+    // + Review React
+    // + Review JS
+    + Look at past React code about components, code organization, etc.
+    + Use typescript
+    // + Do fetch from back end
+    + Review hooks
+  + Do the HTTP handler thing (the web server)
+    // + Implement
+    + Create tests for handler error handler
+    // + Create tests
+    // + Test so that same domain request shouldn't add more database data
+  + Back burner:
+    + Make IsEmpty more robust. Check if field exists.
+    + Refactor, simplify, make more clear app service
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 23
+-----------------------------------------------------------
+
+* Quality of Life *
+  + If no urban area found, don't fail
+  + More robust urban area matching (yahoo.com Singapore 106.10.137.0)
+  // + Fix yahoo.com garbage data why Lockport isn't showing
+  // + Do https://tools.keycdn.com/geo?host=106.10.137.0 API, 3 requests/second
+  + Make IsEmpty more robust. Check if field exists.
+  // + Fix "model must not be empty"
+  // + Refactor database, config and context setups
+  // + Refactor test setup
+  + Front end: show everything on map
+    + Review React
+    + Review JS
+  // + Put JSON tags on Teleport fields
+  + Do the HTTP handler thing (the web server)
+    // + Implement
+    + Create tests for handler error handler
+    // + Create tests
+    // + Test so that same domain request shouldn't add more database data
+  + Back burner:
+    + Hedged requests
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 22
+-----------------------------------------------------------
+
+* Quality of Life *
+  // + Fix all Where's missing preloads
+  // + Refactor common tests to take inputs instead of taking the inputs from the database
+  // + Reorganize tests:
+    // + !X terrible mistake, it will ? tests because no tests! Move testlib inside tests
+    // + Refactor test seed tests because it will be used elsewhere
+  // X app service takes care of this + Create "final" database seeder (probably just the root user)
+  + Front end: show everything on map
+    + Review React
+    + Review JS
+  // + Put JSON tags on Teleport fields
+  + Do the HTTP handler thing (the web server)
+    // + Implement
+    + Create tests for handler error handler
+    // + Create tests
+  + Back burner:
+    + Move root user creation out of app service to an initial seeder
+    + Benchmark and optimize
+    + No solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 21
+-----------------------------------------------------------
+
+* Quality of Life *
+  + Put JSON tags on Teleport fields
+  // + Fix preload mess, create utility
+    // + Create tests
+  // + Do urban area search by city without hitting Teleport API if possible
+  // + Combine CityData to Location
+  // + Rename CityData => LocationData?
+  // + Update city data urban test scores preload
+  // + Make separate urban area entity
+  // + Make city belong to urban area
+  // + Set up live reloading
+  // + Find out why IPs getting reseeded
+  // + Find out why no city data urban area scores are not showing
+    // + Create tests
+  + Do later: benchmark and optimize
+  + Do the HTTP handler thing (the web server)
+    + Implement
+    + Create tests for handler error handler
+    + Create tests
+  + Show everything on map
+  // + Store results into database
+  // + Look up search if it's in database already. Saves API usage.
+  + Back burner: no solution it seems, fix "Transport: unhandled response frame"
+
+-----------------------------------------------------------
+    2022 01 20
+-----------------------------------------------------------
+
+* Notes *
+  + HTTP error handling https://blog.questionable.services/article/http-handler-error-handling-revisited/
+  [golang]
+  // main.go
+  package main
+
+  import (
+      "net/http"
+      "github.com/you/somepkg/handler"
+  )
+
+  func main() {
+      db, err := sql.Open("connectionstringhere")
+      if err != nil {
+            log.Fatal(err)
+      }
+
+      // Initialise our app-wide environment with the services/info we need.
+      env := &handler.Env{
+          DB: db,
+          Port: os.Getenv("PORT"),
+          Host: os.Getenv("HOST"),
+          // We might also have a custom log.Logger, our
+          // template instance, and a config struct as fields
+          // in our Env struct.
+      }
+
+      // Note that we're using http.Handle, not http.HandleFunc. The
+      // latter only accepts the http.HandlerFunc type, which is not
+      // what we have here.
+      http.Handle("/", handler.Handler{env, handler.GetIndex})
+
+      // Logs the error if ListenAndServe fails.
+      log.Fatal(http.ListenAndServe(":8000", nil))
+  }
+
+  // handler/handler.go
+  package handler
+
+  import (
+      "net/http"
+  )
+
+  // Error represents a handler error. It provides methods for a HTTP status
+  // code and embeds the built-in error interface.
+  type Error interface {
+    error
+    Status() int
+  }
+
+  // StatusError represents an error with an associated HTTP status code.
+  type StatusError struct {
+    Code int
+    Err  error
+  }
+
+  // Allows StatusError to satisfy the error interface.
+  func (se StatusError) Error() string {
+    return se.Err.Error()
+  }
+
+  // Returns our HTTP status code.
+  func (se StatusError) Status() int {
+    return se.Code
+  }
+
+  // A (simple) example of our application-wide configuration.
+  type Env struct {
+    DB   *sql.DB
+    Port string
+    Host string
+  }
+
+  // The Handler struct that takes a configured Env and a function matching
+  // our useful signature.
+  type Handler struct {
+    *Env
+    H func(e *Env, w http.ResponseWriter, r *http.Request) error
+  }
+
+  // ServeHTTP allows our Handler type to satisfy http.Handler.
+  func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    err := h.H(h.Env, w, r)
+    if err != nil {
+      switch e := err.(type) {
+      case Error:
+        // We can retrieve the status here and write out a specific
+        // HTTP status code.
+        log.Printf("HTTP %d - %s", e.Status(), e)
+        http.Error(w, e.Error(), e.Status())
+      default:
+        // Any error types we don't specifically look out for default
+        // to serving a HTTP 500
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+          http.StatusInternalServerError)
+      }
+    }
+  }
+
+  func GetIndex(env *Env, w http.ResponseWriter, r *http.Request) error {
+      users, err := env.DB.GetAllUsers()
+      if err != nil {
+          // We return a status error here, which conveniently wraps the error
+          // returned from our DB queries. We can clearly define which errors
+          // are worth raising a HTTP 500 over vs. which might just be a HTTP
+          // 404, 403 or 401 (as appropriate). It's also clear where our
+          // handler should stop processing by returning early.
+          return StatusError{500, err}
+      }
+
+      fmt.Fprintf(w, "%+v", users)
+      return nil
+  }
+
+  [end]
+
+* Quality of Life *
+  + Find out why no city data is showing
+  // + Fix all defer to return error
+  // + Move test seed code to service
+  // + Fix this returning no open x Change FindOpenConnection to return bool if found or not
+  // + Change DatabaseObj to DBObj and Database to DB
+  + Do later: benchmark and optimize
+  // + X Do later: take database out of config and put into separate context value container
+  // + Refactor database test seed tests for better organization
+  // + Fix the unique record look up. What if the record is not unique?
+  + Do the HTTP handler thing (the web server)
+    + Implement
+    + Create tests
+  + Fix "Transport: unhandled response frame"
+  // + Get quality of life stats of that city using
+    // https://developers.teleport.org/api/getting_started/#city_info
+    // https://developers.teleport.org/api/getting_started/#life_quality_ua
+    // + Do tests
+    // + Create models => database
+  + Show everything on map
+  + Store results into database
+  + Look up search if it's in database already. Saves API usage.
+
+-----------------------------------------------------------
+    2022 01 19
+-----------------------------------------------------------
+
+* Quality of Life *
+  // + Go through and fix all preloads because of the recent changes
+  // + Fix location, IP, and city data relationships
+  // + Test many to many using separate code
+  // + Update preloads
+  // + Go through and fix all preloads
+  // + Refactor testseed to save API usage
+  // + Transfer location to separate model
+  // + builder.go to new.go if it's New function
+  + Fix "Transport: unhandled response frame"
+  // + Change priv dir to sec so it won't be ignored by git
+  + Get quality of life stats of that city using
+    https://developers.teleport.org/api/getting_started/#city_info
+    https://developers.teleport.org/api/getting_started/#life_quality_ua
+    + Do tests
+    // + Create models => database
+  + Show everything on map
+  + Store results into database
+  + Look up search if it's in database already. Saves API usage.
+
+-----------------------------------------------------------
+    2022 01 18
+-----------------------------------------------------------
+
+// https://torstatus.rueckgr.at/
+
+* Quality of Life *
+  // + Limit subdomains count to save API usage using config => context
+  // + Make priv read from file. File path given by config. Move priv code to config.
+  // + Change config creation to new to allow injection of global config data
+  // + Limit IPs total to save API usage using config => context
+  // + Create IP location tests
+  // + Use multiple geo IP APIs
+  // + Create priv package
+  // + Fix IP tests sorting
+  // + Use geo IP API with higher limits
+  + Get quality of life stats of that city using
+    https://developers.teleport.org/api/getting_started/#city_info
+    https://developers.teleport.org/api/getting_started/#life_quality_ua
+  + Show everything on map
+  + Store results into database
+  + Look up search if it's in database already. Saves API usage.
+
+-----------------------------------------------------------
+    2022 01 17
+-----------------------------------------------------------
+
+* Quality of Life *
+  // + Create tests for IP stuff
+  // + Remove "pkg" names
+  // + Create IP entity (mirror that of Go IP object)
+  // + Create subdomain service
+  // + Reorganize app folder (models, services) to entities folder
+  // + Make defer return error
+  // + Create app model
+  // + Make app model seeding work
+  // + Create seed tests for app model
+  // + Reorganize Crobat (put into app/service)
+  // + Implement err group
+  // + Get domains using https://github.com/Cgboal/SonarSearch
+  // + Get IPs per domain and subdomain using Go (net package)
+  // + Get city location of IPs
+  + Get quality of life stats of that city using
+    https://developers.teleport.org/api/getting_started/#city_info
+    https://developers.teleport.org/api/getting_started/#life_quality_ua
+  + Show everything on map
+  + Store results into database
+  + Look up search if it's in database already. Saves API usage.
+
+-----------------------------------------------------------
+    2022 01 16
+-----------------------------------------------------------
+
+* Quality of Life *
+  // + Build the project scaffold/template
+    // + Database tools
+    // + User maybe
+  + Create app model
+  + Make app model seeding work
+  + Create seed tests for app model
+  + Reorganize Crobat (put into app/service)
+  + Implement err group
+  + Get domains using https://github.com/Cgboal/SonarSearch
+  + Get IP per domain using Go (net package)
+  + Get city location of IPs
+  + Get quality of life stats of that city using
+    https://developers.teleport.org/api/getting_started/#city_info
+    https://developers.teleport.org/api/getting_started/#life_quality_ua
+  + Show everything on map
+  + Store results into database
+  + Look up search if it's in database already. Saves API usage.
+
+-----------------------------------------------------------
+    2022 01 15
+-----------------------------------------------------------
+
+* Demo *
+  + Log in: save highlights in your favorites
+  + Finalize highlights fetcher service
+    + Get lastest from database
+    + Package into some JSON structure
+  + Fix all models
+    + Make uniform (All, Delete, use of errors with stack trace, foreign key for data table, etc.)
+  + Explore hedged requests for requesting stuff
+  + Finalize seed setup
+    + Maybe just user and stocks
+    // + Maybe move the seed all code to tests to run seed all tests
+
+* Another demo *
+  // + Build the project scaffold/template
+    // + Database tools
+    // + User maybe
+  + Get domains using https://github.com/Cgboal/SonarSearch
+  + Get IP per domain using Go (net package)
+  + Get city location of IPs
+  + Get quality of life stats of that city using
+    https://developers.teleport.org/api/getting_started/#city_info
+    https://developers.teleport.org/api/getting_started/#life_quality_ua
+  + Show everything on map
+  + Store results into database
+  + Look up search if it's in database already. Saves API usage.
+
+-----------------------------------------------------------
+    2022 01 13
+-----------------------------------------------------------
+
+* Demo *
+  // X + frkout to lib.FreakOut
+  + Finalize highlights fetcher service
+  // X + Make wsb daily live thread finder
+  + Fix all models
+    + Make uniform (All, Delete, use of errors with stack trace, foreign key for data table, etc.)
+  // + Do the logic for collecting stock symbols
+  + Explore hedged requests for requesting stuff
+  + Finalize seed setup
+    + Maybe just user and stocks
+    // + Maybe move the seed all code to tests to run seed all tests
+
+-----------------------------------------------------------
+    2022 01 12
+-----------------------------------------------------------
+
+* Demo *
+  + Fix all models
+    + Make uniform (All, Delete, use of errors with stack trace, foreign key for data table, etc.)
+  // + Remove "... ERROR:..."
+  // + Massive overhaul: pass context to everything
+  // + Do database contexts for tests
+  + Do the logic for collecting stock symbols
+  // + Explore making slow database tests use goroutines
+  + Explore hedged requests for requesting stuff
+  + Finalize seed setup
+    + Maybe just user and stocks
+    // + Maybe move the seed all code to tests to run seed all tests
+
+-----------------------------------------------------------
+    2022 01 11
+-----------------------------------------------------------
+
+* Demo *
+  + Remove "... ERROR:..."
+  + Massive overhaul: pass context to everything
+  + Do database contexts for tests
+  + Do the logic for collecting stock symbols
+  + Explore making slow database tests use goroutines
+  + Explore hedged requests for requesting stuff
+  + Finalize seed setup
+    + Maybe just user and stocks
+    // + Maybe move the seed all code to tests to run seed all tests
+
+-----------------------------------------------------------
+    2022 01 10
+-----------------------------------------------------------
+
+* Misc *
+  // + Make db gorm somehow global
+  // + Change names on tests
+  + Do database contexts for tests
+  + Do the logic for collecting stock symbols
+  // + Change seeds so that it won't nuke everything
+  // + Make a seed to seed all
+  + Explore making slow database tests use goroutines
+  + Explore hedged requests for requesting stuff
+  + Finalize seed setup
+    + Maybe just user and stocks
+    // + Maybe move the seed all code to tests to run seed all tests
+
+-----------------------------------------------------------
+    2022 01 07
+-----------------------------------------------------------
+
+* Misc *
+  + Make db gorm somehow global
+  + Change names on tests
+  + Do database contexts for tests
+  + Do the logic for collecting stock symbols
+  + Change seeds so that it won't nuke everything
+  + Make a seed to seed all
+  // + Make table for results of calculation
+    // Maybe...
+    // CalcModel
+      // Symbol
+      // Count
+
+-----------------------------------------------------------
+    2022 01 06
+-----------------------------------------------------------
+
+* Misc *
+  + Make db gorm somehow global
+  // + Fix the mess
+  // + Clean up
+  + Change names on tests
+  + Do database contexts for tests
+
+-----------------------------------------------------------
+    2022 01 04
+-----------------------------------------------------------
+
+* Misc *
+  // + Maybe change model structure from listing to reddit/listing
+  // + Do contents
+    // > Model setup
+      // % ListingContent:
+        // @ Has one content (Listing type, checked same fields maybe with listing, both t3)
+        // @ Has many comments
+      // % Comment:
+        // @ Has many replies (which are also comments)
+    // > Replies
+    // > Test
+  // + Listing service manual model creation to "map to model"
+
+-----------------------------------------------------------
+    2022 01 03
+-----------------------------------------------------------
+
+* Database *
+  // + Conditions to check existence
+  // + Drop dev and test databases
+  // + Convert posts to listing maybe (figure out actual name)
+  // + Create comments post
+
+-----------------------------------------------------------
+    2022 12 30
+-----------------------------------------------------------
+
+* Models *
+  // + Figure out the reddit models: list of links model if there is one. Link model.
+  // + Figure out associations: probably just links belong to user
+
+* Optional *
+  + JWT
+
+* gorm *
+  https://gorm.io/docs/belongs_to.html#Override-References
+  For a belongs to relationship, GORM usually uses the owner’s primary field as the foreign key’s value, for the above example, it is Company‘s field ID.
+
+  When you assign a user to a company, GORM will save the company’s ID into the user’s CompanyID field.
+
+  You are able to change it with tag references, e.g:
+
+  [golang]
+  // !!!!I think what this means is that instead of saving Company's ID to User's CompanyID, save Company's Code to User's CompanyID!!!!
+  type User struct {
+    gorm.Model
+    Name      string
+    CompanyID string
+    Company   Company `gorm:"references:Code"` // use Code as references
+  }
+
+  type Company struct {
+    ID   int
+    Code string
+    Name string
+  }
+  [end]
+
+-----------------------------------------------------------
+    2021 12 29
+-----------------------------------------------------------
+
+// + Clean up modules
+// + Make sure modules work everywhere
+
+-----------------------------------------------------------
+    Database
+-----------------------------------------------------------
+
+* Setup *
+  // + PRIV: Read config from file
+  // + Create database
+  // + Drop database
+  // + Reset database
+  + Migrations:
+    // Create table
+    // X Drop table, alter table, etc.

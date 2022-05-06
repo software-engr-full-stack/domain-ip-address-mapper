@@ -1,0 +1,77 @@
+- name: '{{ sub_subgroup_title }}: set facts'
+  set_fact:
+    certbot_bin_dest: '/usr/bin/certbot'
+    email: 'server.monitor.lizard@gmail.com'
+    tar_file: '/root/letsencrypt.tar.xz'
+
+- name: '{{ sub_subgroup_title }}: install packages'
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/snap
+      - install
+      - --classic
+      - certbot
+
+- name: '{{ sub_subgroup_title }}: create symlink to sites-enabled dir'
+  become: yes
+  ansible.builtin.file:
+    src: '/snap/bin/certbot'
+    dest: '{{ certbot_bin_dest }}'
+    state: link
+
+- name: '{{ sub_subgroup_title }}: run certbot'
+  become: yes
+  when: no_cert_files
+  ansible.builtin.command:
+    argv:
+      - '{{ certbot_bin_dest }}'
+
+      - --nginx
+      - --domains
+      - "{{ domains | join(',') }}"
+
+      - --non-interactive
+      - --agree-tos
+      - --email
+      - '{{ email }}'
+
+# # TODO: delete after debugging
+# - name: '{{ sub_subgroup_title }}, DEBUG: CertBot run is successful'
+#   ansible.builtin.command: 'echo DEBUG: CERTBOT IS successful'
+#   register: certbot_result
+
+- name: '{{ sub_subgroup_title }}: create archive for fetching (at this time, Ansible can only fetch a file from remote to local)'
+  when: no_cert_files
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - tar
+      - cJvf
+      - '{{ tar_file }}'
+      - /etc/letsencrypt
+
+- name: '{{ sub_subgroup_title }}: copy TLS files from remote to local host'
+  when: no_cert_files
+  become: yes
+  run_once: yes
+  ansible.builtin.fetch:
+    src: '{{ tar_file }}'
+    # !!!!IMPORTANT: relative to the playbook calling this file!!!!
+    dest: '{{ fetched_tls_files_dir }}/{{ main_domain }}.tar.xz'
+    # dest: '{{ fetched_tls_files_dir }}/{{ main_domain }}-letsencrypt.tar.xz'
+    flat: yes
+
+- name: '{{ sub_subgroup_title }}: copy cert files'
+  become: yes
+  when: not no_cert_files
+  ansible.builtin.copy:
+    src: '{{ cert_files_dir }}/letsencrypt'
+    dest: '/etc'
+    local_follow: no
+
+- name: '{{ sub_subgroup_title }}: unset facts'
+  set_fact:
+    certbot_bin_dest:
+    email:
+    tar_file:

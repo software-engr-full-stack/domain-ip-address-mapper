@@ -1,0 +1,27 @@
+#cloud-config
+# ... !!The first line "#cloud-config" must be present for this to work!!
+
+# https://github.com/hashicorp/learn-terraform-provisioning/tree/cloudinit
+groups:
+  - remote
+
+# Add users to the system. Users are added after groups are added.
+users:
+  - default
+  - name: remote
+    gecos: remote
+    shell: /bin/bash
+    primary_group: remote
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: admin, wheel
+    lock_passwd: false
+    ssh-authorized-keys:
+      - '${ssh_authorized_key0}'
+      - '${ssh_authorized_key1}'
+
+# # ... Some interesting config
+# packages:
+#   - tree
+
+# runcmd:
+#   - echo '... run some commands'
