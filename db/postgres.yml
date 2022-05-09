@@ -8,12 +8,12 @@ default: &default
 
 development:
   <<: *default
-  name: 'demo_dev'
+  name: 'domain_ip_mapper_dev'
 
 test:
   <<: *default
-  name: 'demo_test'
+  name: 'domain_ip_mapper_test'
 
 production:
   <<: *default
-  name: 'demo'
+  name: 'domain_ip_mapper'
