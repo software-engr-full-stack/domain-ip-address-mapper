@@ -1,3 +1,7 @@
+# Status
+
+Not working as of 2022/05/09 because domain look up service is broken. See [issue](https://github.com/Cgboal/SonarSearch/issues/47).
+
 # About
 
 Demo: One of these should work: [cloudsandbox.dev](https://cloudsandbox.dev/), [ipmapper.cloudsandbox.dev](https://ipmapper.cloudsandbox.dev/)
